@@ -45,8 +45,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
   void initState() {
     super.initState();
     _pages = [
-      HomeScreen(name: widget.name, surname: widget.surname, specialization: widget.specialization),
-      const AddPatientPage(),
+      const HomeScreen(),
+      AddPatientPage(),
       const PatientManagementPage(),
       const DoctorProfilePage(),
       const EditProfilePage(),

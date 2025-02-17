@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
+import '../AddPatientPage/AddPatientPage.dart';
 import '../DatabaseOperations/DatabaseHelper.dart';
 import 'dart:io';
+
+import '../EditProfilePage/EditProfilePage.dart';
+import '../Homepage/HomeScreen.dart';
+import '../ProfilePage/ProfilePage.dart';
 
 class PatientManagementPage extends StatefulWidget {
   const PatientManagementPage({super.key});
@@ -12,20 +17,28 @@ class PatientManagementPage extends StatefulWidget {
 
 class _PatientManagementPageState extends State<PatientManagementPage> {
   late Future<List<Map<String, dynamic>>> _patients;
-  int _selectedIndex = 0; // To track the selected tab
+   // To track the selected tab
+  int _currentIndex = 0;
+
+  late final List<Widget> _pages;
+
 
   @override
   void initState() {
     super.initState();
+
     _patients = DatabaseHelper.instance.getAllPatients();
+    _pages = [
+      HomeScreen(),
+      const AddPatientPage(),
+      const PatientManagementPage(),
+      const DoctorProfilePage(),
+      const EditProfilePage(),
+    ];
   }
 
   // Handle Bottom Navigation Bar tab selection
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -105,30 +118,59 @@ class _PatientManagementPageState extends State<PatientManagementPage> {
         },
       ),
       // Bottom Navigation Bar
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.teal,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-      ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Anasayfa',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_box_rounded),
+              label: 'Hasta Ekle',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.report, color: Colors.blueAccent), // Hasta Yönetimi her zaman mavi
+              label: 'Hasta Yönetimi',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.supervised_user_circle),
+              label: 'Profil',
+            ),
+          ],
+          currentIndex: 2,
+          selectedItemColor: Colors.blueAccent,
+          unselectedItemColor: Colors.blueGrey,
+          onTap: (index) {
+            if (index == 0) {
+              setState(() {
+                _currentIndex = index;
+              });
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+            }
+            if (index == 1) {
+              setState(() {
+                _currentIndex = index;
+              });
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddPatientPage()),
+              );
+            }
+            if (index == 3) {
+              setState(() {
+                _currentIndex = index;
+              });
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => DoctorProfilePage()),
+              );
+            }
+          },
+        )
+
     );
   }
 }
