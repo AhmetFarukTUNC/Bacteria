@@ -9,7 +9,11 @@ import '../Homepage/HomeScreen.dart';
 import '../ProfilePage/ProfilePage.dart';
 
 class PatientManagementPage extends StatefulWidget {
-  const PatientManagementPage({super.key});
+  final String? name;
+  final String? surname;
+  final String? specialization;
+
+  const PatientManagementPage({super.key, this.name, this.surname, this.specialization});
 
   @override
   _PatientManagementPageState createState() => _PatientManagementPageState();
@@ -147,7 +151,7 @@ class _PatientManagementPageState extends State<PatientManagementPage> {
               });
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
+                MaterialPageRoute(builder: (context) => HomeScreen(name: widget.name,surname: widget.surname,specialization: widget.specialization)),
               );
             }
             if (index == 1) {
@@ -156,7 +160,7 @@ class _PatientManagementPageState extends State<PatientManagementPage> {
               });
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AddPatientPage()),
+                MaterialPageRoute(builder: (context) => AddPatientPage(name: widget.name,surname:widget.surname,specialization: widget.specialization,)),
               );
             }
             if (index == 3) {

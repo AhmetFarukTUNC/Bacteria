@@ -13,12 +13,8 @@ class AddPatientPage extends StatefulWidget {
   final String? surname;
   final String? specialization;
 
-  const AddPatientPage({
-    super.key,
-    this.name,
-    this.surname,
-    this.specialization,
-  });
+  const AddPatientPage({super.key, this.name, this.surname, this.specialization});
+
 
   @override
   _AddPatientPageState createState() => _AddPatientPageState();
@@ -43,10 +39,11 @@ class _AddPatientPageState extends State<AddPatientPage> {
 
   @override
   void initState() {
+
     super.initState();
     _pages = [
       const HomeScreen(),
-      AddPatientPage(),
+      AddPatientPage(name: widget.name,surname: widget.surname,specialization: widget.specialization,),
       const PatientManagementPage(),
       const DoctorProfilePage(),
       const EditProfilePage(),

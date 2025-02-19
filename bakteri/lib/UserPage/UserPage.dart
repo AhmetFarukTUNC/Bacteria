@@ -1,7 +1,9 @@
 import 'package:bakteri/AddPatientPage/AddPatientPage.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../DatabaseOperations/DatabaseHelper.dart';
 import '../Homepage/HomeScreen.dart';
+import '../provider.dart';
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});
@@ -40,6 +42,14 @@ class _UserPageState extends State<UserPage> {
     final user = await DatabaseHelper.instance.getUserByEmailAndPassword(email, password);
 
     if (user != null) {
+
+      // Kullanıcı bilgilerini UserProvider'a gönderme
+      Provider.of<UserProvider>(context, listen: false).setUser(
+        user['name'],
+        user['surname'],
+        user['specialization'],
+        user['email'],
+        user['phone'],);
       // Giriş başarılı
       print("Giriş Başarılı!");
 
@@ -51,6 +61,7 @@ class _UserPageState extends State<UserPage> {
             name: user['name'],
             surname: user['surname'],
             specialization: user['specialization'],
+
           ),
         ),
       );
@@ -192,6 +203,13 @@ class _UserPageState extends State<UserPage> {
                   const SizedBox(height: 40),
                   ElevatedButton(
                     onPressed: () {
+                      Provider.of<UserProvider>(context, listen: false).setUser(
+                        _nameController.text,
+                          _surnameController.text,
+                        _specializationController.text,
+                        _emailController.text,
+                      _phoneController.text);
+
                       if (_formKey.currentState?.validate() ?? false) {
                         String name = _nameController.text;
                         String surname = _surnameController.text;

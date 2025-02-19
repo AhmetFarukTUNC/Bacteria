@@ -1,10 +1,17 @@
+import 'package:bakteri/provider.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'package:provider/provider.dart';
 
 import 'SplashScreen/SplashScreen.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => UserProvider(),
+      child: MyApp(),
+    ),
+
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -13,29 +20,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Bakteri Tanımlama Projesi',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue), // Mavi tonları için güncellendi
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: SplashScreen(),
+      home: SplashScreen(), // SplashScreen yerine HomePage kullanıldı
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Bakteri Fotoğrafı Çekme Sayfası
 class BacteriaPhotoPage extends StatelessWidget {
@@ -51,7 +45,3 @@ class BacteriaPhotoPage extends StatelessWidget {
     );
   }
 }
-
-
-
-

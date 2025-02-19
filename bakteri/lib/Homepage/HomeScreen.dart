@@ -2,8 +2,10 @@ import 'package:bakteri/EditProfilePage/EditProfilePage.dart';
 import 'package:bakteri/ProfilePage/ProfilePage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../AddPatientPage/AddPatientPage.dart';
 import '../PatientManagementPage/PatientManagementPage.dart';
+import '../provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? name;
@@ -35,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Anasayfa'),
@@ -61,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Center(
                 child: Text(
-                  'Hoş Geldiniz, ${widget.specialization} Doktoru ${widget.name} ${widget.surname}',
+                  'Hoş Geldiniz, ${userProvider.specialization} Doktoru ${userProvider.name} ${userProvider.surname}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),

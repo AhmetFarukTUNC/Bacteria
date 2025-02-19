@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../provider.dart';
 
 class DoctorProfilePage extends StatelessWidget {
   const DoctorProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Accessing the userProvider instance
+    final userProvider = Provider.of<UserProvider>(context);
+
+    // Handle null checks for name, surname, and specialization
+    final doctorName = (userProvider.name?.isEmpty ?? true) ? 'Bilinmiyor' : '${userProvider.name} ${userProvider.surname}';
+    final doctorSpecialization = (userProvider.specialization?.isEmpty ?? true) ? 'Uzmanlık Alanı Bilinmiyor' : userProvider.specialization;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Doktor Profili'),
+        title: Text(doctorName),
         centerTitle: true,
         backgroundColor: Colors.teal,
       ),
@@ -24,10 +33,10 @@ class DoctorProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Doktorun adı
-            const Text(
-              'Dr. Ahmet Faruk Tunc',
-              style: TextStyle(
+            // Doktorun adı, soyadı ve uzmanlık alanı
+            Text(
+              "$doctorSpecialization Doktoru $doctorName",
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Colors.teal,
@@ -36,14 +45,7 @@ class DoctorProfilePage extends StatelessWidget {
             const SizedBox(height: 8),
 
             // Uzmanlık alanı
-            const Text(
-              'Mikrobiyoloji ve Enfeksiyon Hastalıkları Uzmanı',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
+
             const SizedBox(height: 16),
 
             // Doktor bilgileri
@@ -56,38 +58,34 @@ class DoctorProfilePage extends StatelessWidget {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
+                  children: [
+                    const Text(
                       'Bilgiler',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 25,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     ListTile(
                       leading: Icon(Icons.local_hospital, color: Colors.teal),
-                      title: Text('Hastane'),
-                      subtitle: Text('İstanbul Eğitim ve Araştırma Hastanesi'),
+                      title: Text(style:TextStyle(fontSize: 24),'Uzmanlık Alanı'),
+                      subtitle: Text(style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold),userProvider.specialization ?? "Bilinmiyor"),
                     ),
-                    Divider(),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.local_hospital, color: Colors.teal),
+                      title: const Text(style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold),'E-Mail'),
+                      subtitle: Text(style:TextStyle(fontSize: 18,fontWeight: FontWeight.bold),userProvider.email ?? 'Bilinmiyor'),
+                    ),
                     ListTile(
                       leading: Icon(Icons.phone, color: Colors.teal),
-                      title: Text('Telefon'),
-                      subtitle: Text('+90 532 456 78 90'),
+                      title: const Text(style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold),'Telefon'),
+                      subtitle: Text(style:TextStyle(fontSize: 18,fontWeight: FontWeight.bold),userProvider.phone ?? 'Bilinmiyor'), // null control
                     ),
-                    Divider(),
-                    ListTile(
-                      leading: Icon(Icons.email, color: Colors.teal),
-                      title: Text('Email'),
-                      subtitle: Text('dr.ahmetfaruk@example.com'),
-                    ),
-                    Divider(),
-                    ListTile(
-                      leading: Icon(Icons.business_center, color: Colors.teal),
-                      title: Text('Deneyim'),
-                      subtitle: Text('10+ yıl'),
-                    ),
+
+
+
                   ],
                 ),
               ),
