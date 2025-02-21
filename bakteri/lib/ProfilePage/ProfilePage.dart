@@ -1,16 +1,51 @@
+import 'package:bakteri/AddPatientPage/AddPatientPage.dart';
+import 'package:bakteri/Homepage/HomeScreen.dart';
+import 'package:bakteri/PatientManagementPage/PatientManagementPage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provider.dart';
 
-class DoctorProfilePage extends StatelessWidget {
+class DoctorProfilePage extends StatefulWidget {
   const DoctorProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Accessing the userProvider instance
-    final userProvider = Provider.of<UserProvider>(context);
+  _DoctorProfilePageState createState() => _DoctorProfilePageState();
+}
 
-    // Handle null checks for name, surname, and specialization
+class _DoctorProfilePageState extends State<DoctorProfilePage> {
+  int _selectedIndex = 3;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+
+
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AddPatientPage()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => PatientManagementPage()),
+        );
+
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     final doctorName = (userProvider.name?.isEmpty ?? true) ? 'Bilinmiyor' : '${userProvider.name} ${userProvider.surname}';
     final doctorSpecialization = (userProvider.specialization?.isEmpty ?? true) ? 'Uzmanlık Alanı Bilinmiyor' : userProvider.specialization;
 
@@ -25,15 +60,12 @@ class DoctorProfilePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Doktorun profil resmi
             CircleAvatar(
               radius: 50,
-              backgroundImage: AssetImage('assets/doctor_profile.jpg'), // Profil resmi
+              backgroundImage: AssetImage('assets/doctor_profile.jpg'),
               backgroundColor: Colors.grey[300],
             ),
             const SizedBox(height: 16),
-
-            // Doktorun adı, soyadı ve uzmanlık alanı
             Text(
               "$doctorSpecialization Doktoru $doctorName",
               style: const TextStyle(
@@ -42,13 +74,7 @@ class DoctorProfilePage extends StatelessWidget {
                 color: Colors.teal,
               ),
             ),
-            const SizedBox(height: 8),
-
-            // Uzmanlık alanı
-
             const SizedBox(height: 16),
-
-            // Doktor bilgileri
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -68,31 +94,26 @@ class DoctorProfilePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     ListTile(
-                      leading: Icon(Icons.local_hospital, color: Colors.teal),
-                      title: Text(style:TextStyle(fontSize: 24),'Uzmanlık Alanı'),
-                      subtitle: Text(style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold),userProvider.specialization ?? "Bilinmiyor"),
+                      leading: Icon(Icons.security_outlined, color: Colors.teal),
+                      title: Text('Uzmanlık Alanı', style: TextStyle(fontSize: 24)),
+                      subtitle: Text(userProvider.specialization ?? "Bilinmiyor", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
                     const Divider(),
                     ListTile(
-                      leading: const Icon(Icons.local_hospital, color: Colors.teal),
-                      title: const Text(style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold),'E-Mail'),
-                      subtitle: Text(style:TextStyle(fontSize: 18,fontWeight: FontWeight.bold),userProvider.email ?? 'Bilinmiyor'),
+                      leading: Icon(Icons.email, color: Colors.teal),
+                      title: Text('E-Mail', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      subtitle: Text(userProvider.email ?? 'Bilinmiyor', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
                     ListTile(
                       leading: Icon(Icons.phone, color: Colors.teal),
-                      title: const Text(style:TextStyle(fontSize: 20,fontWeight: FontWeight.bold),'Telefon'),
-                      subtitle: Text(style:TextStyle(fontSize: 18,fontWeight: FontWeight.bold),userProvider.phone ?? 'Bilinmiyor'), // null control
+                      title: Text('Telefon', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      subtitle: Text(userProvider.phone ?? 'Bilinmiyor', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
-
-
-
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
-
-            // Son tanımlamalar başlığı
             const Text(
               'Son Tanımlamalar',
               style: TextStyle(
@@ -102,8 +123,6 @@ class DoctorProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-
-            // Son tanımlamalar listesi
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -131,25 +150,33 @@ class DoctorProfilePage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Profil düzenleme düğmesi
-            ElevatedButton.icon(
-              onPressed: () {
-                // Buraya profil düzenleme fonksiyonu eklenebilir
-              },
-              icon: const Icon(Icons.edit),
-              label: const Text('Profili Düzenle'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-            ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
+        onTap: _onItemTapped,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.blueGrey,
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Anasayfa',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box_rounded),
+            label: 'Hasta Ekle',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.report),
+            label: 'Hasta Yönetimi',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.supervised_user_circle),
+            label: 'Profil',
+          ),
+        ],
       ),
     );
   }
