@@ -31,7 +31,7 @@ This mobile application enables doctors to manage their patients' information ef
      flutter run
 
 ## 📷 Screenshots
-
+![HOMEPAGE](butce/images/anasayfa.png)
 
 ## 🛡 Security & Privacy
 - All patient data is stored locally using **SQLite**.
