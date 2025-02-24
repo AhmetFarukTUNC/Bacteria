@@ -17,7 +17,7 @@ This mobile application enables doctors to manage their patients' information ef
 1. **Clone the Repository:**
    
    git clone https://github.com/AhmetFarukTUNC/Bacteria/
-   cd your-repo
+   cd BACTERIA
   
 2. **Install Dependencies:**
    
