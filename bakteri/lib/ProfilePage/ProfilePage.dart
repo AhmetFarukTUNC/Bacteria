@@ -113,53 +113,15 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Son Tanımlamalar',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 4,
-              child: Column(
-                children: const [
-                  ListTile(
-                    leading: Icon(Icons.bug_report, color: Colors.green),
-                    title: Text('Escherichia coli'),
-                    subtitle: Text('Tanımlama Tarihi: 15 Ocak 2025'),
-                  ),
-                  Divider(),
-                  ListTile(
-                    leading: Icon(Icons.bug_report, color: Colors.orange),
-                    title: Text('Staphylococcus aureus'),
-                    subtitle: Text('Tanımlama Tarihi: 10 Ocak 2025'),
-                  ),
-                  Divider(),
-                  ListTile(
-                    leading: Icon(Icons.bug_report, color: Colors.red),
-                    title: Text('Pseudomonas aeruginosa'),
-                    subtitle: Text('Tanımlama Tarihi: 5 Ocak 2025'),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 30),
+
+            const SizedBox(height: 30),
+
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        type: BottomNavigationBarType.fixed,
-        onTap: _onItemTapped,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.blueGrey,
-        items: [
+        items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Anasayfa',
@@ -177,6 +139,29 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
             label: 'Profil',
           ),
         ],
+        currentIndex: 3,
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.blueGrey,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          }
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AddPatientPage()),
+            );
+          }
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const PatientManagementPage()),
+            );
+          }
+        },
       ),
     );
   }

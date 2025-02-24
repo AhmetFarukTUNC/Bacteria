@@ -42,20 +42,41 @@ class DatabaseHelper {
 
   Future<void> _createPatientsTable(Database db) async {
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS patients (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        dob TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        disease TEXT NOT NULL,
-        emergency_contact TEXT NOT NULL,
-        emergency_phone TEXT NOT NULL,
-        address TEXT NOT NULL,
-        gender TEXT NOT NULL,
-        image_path TEXT NOT NULL
-      )
-    ''');
+    CREATE TABLE IF NOT EXISTS patients (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,  -- Adding the user_id column
+      name TEXT NOT NULL,
+      dob TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      disease TEXT NOT NULL,
+      emergency_contact TEXT NOT NULL,
+      emergency_phone TEXT NOT NULL,
+      address TEXT NOT NULL,
+      gender TEXT NOT NULL,
+      image_path TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users (id)  -- Adding the foreign key constraint
+    )
+  ''');
   }
+
+
+
+  // userId ile eşleşen verileri alır
+  Future<List<Map<String, dynamic>>> getPatientsByUserId(int userId) async {
+    final db = await instance.database; // Veritabanına bağlanıyoruz
+    try {
+      var res = await db.query(
+        'patients',  // 'patients' tablosu
+        where: 'user_id = ?',  // user_id ile eşleşen satırları seçiyoruz
+        whereArgs: [userId],  // userId parametresi ile eşleştirme yapıyoruz
+      );
+      return List<Map<String, dynamic>>.from(res);   // Eşleşen tüm verileri döndürüyoruz
+    } catch (e) {
+      print('Veritabanı hatası: $e');
+      return [];  // Hata durumunda boş bir liste döndürüyoruz
+    }
+  }
+
 
 
   // ...
@@ -85,7 +106,22 @@ class DatabaseHelper {
     }
   }
 
-  // Users Table Methods
+  // Function to get user by email and password
+  Future<int?> getUserIdByEmailPassword(String email, String password) async {
+    final db = await _database;
+    var result = await db?.query(
+      'users',
+      columns: ['id'], // Assume 'id' is the primary key in your 'users' table
+      where: 'email = ? AND password = ?',
+      whereArgs: [email, password],
+    );
+
+    if (result != null && result.isNotEmpty) {
+      return result.first['id'] as int;  // Cast to int for consistency
+    }
+    return null; // Return null if no user is found
+  }
+
   Future<int> insertUser(Map<String, dynamic> user) async {
     final db = await instance.database;
     return await db.insert('users', user);

@@ -24,36 +24,46 @@ class _UserPageState extends State<UserPage> {
   bool isLogin = true;
 
   Future<void> registerUser(String name, String surname, String email, String password, String specialization, String phone) async {
+    final existingUser = await DatabaseHelper.instance.getUserByEmail(email);
+
+    if (existingUser != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bu e-posta adresi zaten kayıtlı!')),
+      );
+      return;
+    }
+
     final user = {
       'name': name,
       'surname': surname,
       'email': email,
       'password': password,
-      'specialization': specialization, // Uzmanlık alanı
-      'phone': phone, // Telefon numarası
+      'specialization': specialization,
+      'phone': phone,
     };
 
     await DatabaseHelper.instance.insertUser(user);
-    print("Kayıt Başarılı!");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Kayıt başarılı')),
+    );
+    setState(() {
+      isLogin = true;
+    });
   }
 
   Future<void> loginUser(String email, String password) async {
-    // Veritabanında kullanıcıyı sorgulama
     final user = await DatabaseHelper.instance.getUserByEmailAndPassword(email, password);
 
     if (user != null) {
-
-      // Kullanıcı bilgilerini UserProvider'a gönderme
       Provider.of<UserProvider>(context, listen: false).setUser(
         user['name'],
         user['surname'],
         user['specialization'],
         user['email'],
-        user['phone'],);
-      // Giriş başarılı
-      print("Giriş Başarılı!");
+        user['phone'],
+        user["password"]
+      );
 
-      // Kullanıcı bilgilerini HomeScreen'e gönderme
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -61,17 +71,12 @@ class _UserPageState extends State<UserPage> {
             name: user['name'],
             surname: user['surname'],
             specialization: user['specialization'],
-
           ),
         ),
       );
-
-
     } else {
-      // Hatalı giriş
-      print("Hatalı e-posta veya şifre");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hatalı e-posta veya şifre')),
+        const SnackBar(content: Text('Hatalı e-posta veya şifre')),
       );
     }
   }
@@ -92,142 +97,39 @@ class _UserPageState extends State<UserPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  if (isLogin)
-                    Icon(
-                      Icons.lock,
-                      size: 100,
-                      color: Colors.blue,
-                    ),
-                  const SizedBox(height: 20),
-                  if (!isLogin)
-                    Icon(
-                      Icons.person_add,
-                      size: 100,
-                      color: Colors.green,
-                    ),
-                  const SizedBox(height: 20),
-                  if (!isLogin)
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Ad',
-                        prefixIcon: Icon(Icons.person),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Lütfen adınızı girin';
-                        }
-                        return null;
-                      },
-                    ),
-                  const SizedBox(height: 20),
-                  if (!isLogin)
-                    TextFormField(
-                      controller: _surnameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Soyad',
-                        prefixIcon: Icon(Icons.person_outline),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Lütfen soyadınızı girin';
-                        }
-                        return null;
-                      },
-                    ),
-                  const SizedBox(height: 20),
-                  if (!isLogin)
-                    TextFormField(
-                      controller: _specializationController, // Uzmanlık alanı
-                      decoration: const InputDecoration(
-                        labelText: 'Uzmanlık Alanı',
-                        prefixIcon: Icon(Icons.medical_services),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Lütfen uzmanlık alanını girin';
-                        }
-                        return null;
-                      },
-                    ),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'E-posta',
-                      prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Lütfen e-posta adresinizi girin';
-                      }
-                      return null;
-                    },
+                  Icon(
+                    isLogin ? Icons.lock : Icons.person_add,
+                    size: 100,
+                    color: isLogin ? Colors.blue : Colors.green,
                   ),
                   const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(
-                      labelText: 'Şifre',
-                      prefixIcon: Icon(Icons.lock),
-                      border: OutlineInputBorder(),
-                    ),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Lütfen şifrenizi girin';
-                      }
-                      return null;
-                    },
-                  ),
+                  if (!isLogin) ...[
+                    _buildTextField(_nameController, 'Ad', Icons.person),
+                    const SizedBox(height: 20),
+                    _buildTextField(_surnameController, 'Soyad', Icons.person_outline),
+                    const SizedBox(height: 20),
+                    _buildTextField(_specializationController, 'Uzmanlık Alanı', Icons.medical_services),
+                    const SizedBox(height: 20),
+                  ],
+                  _buildTextField(_emailController, 'E-posta', Icons.email),
+                  const SizedBox(height: 20),
+                  _buildTextField(_passwordController, 'Şifre', Icons.lock, obscureText: true),
                   const SizedBox(height: 20),
                   if (!isLogin)
-                    TextFormField(
-                      controller: _phoneController, // Telefon numarası
-                      decoration: const InputDecoration(
-                        labelText: 'Telefon Numarası',
-                        prefixIcon: Icon(Icons.phone),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Lütfen telefon numaranızı girin';
-                        }
-                        return null;
-                      },
-                    ),
+                    _buildTextField(_phoneController, 'Telefon Numarası', Icons.phone),
                   const SizedBox(height: 40),
                   ElevatedButton(
                     onPressed: () {
-                      Provider.of<UserProvider>(context, listen: false).setUser(
-                        _nameController.text,
-                          _surnameController.text,
-                        _specializationController.text,
-                        _emailController.text,
-                      _phoneController.text);
-
                       if (_formKey.currentState?.validate() ?? false) {
-                        String name = _nameController.text;
-                        String surname = _surnameController.text;
-                        String email = _emailController.text;
-                        String password = _passwordController.text;
-                        String specialization = _specializationController.text;
-                        String phone = _phoneController.text;
+                        final name = _nameController.text;
+                        final surname = _surnameController.text;
+                        final email = _emailController.text;
+                        final password = _passwordController.text;
+                        final specialization = _specializationController.text;
+                        final phone = _phoneController.text;
 
                         if (!isLogin) {
                           registerUser(name, surname, email, password, specialization, phone);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Kayıt başarılı'),
-                            ),
-                          );
-                          setState(() {
-                            isLogin = true;
-                          });
                         } else {
                           loginUser(email, password);
                         }
@@ -236,7 +138,7 @@ class _UserPageState extends State<UserPage> {
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: isLogin ? Colors.blue : Colors.green,
-                      padding: EdgeInsets.symmetric(horizontal: 60, vertical: 18),
+                      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 18),
                     ),
                     child: Text(isLogin ? 'Giriş Yap' : 'Kaydol'),
                   ),
@@ -248,7 +150,7 @@ class _UserPageState extends State<UserPage> {
                           isLogin = false;
                         });
                       },
-                      child: Text(
+                      child: const Text(
                         'Hesabınız yok mu? Kaydolun',
                         style: TextStyle(
                           color: Colors.blue,
@@ -262,6 +164,19 @@ class _UserPageState extends State<UserPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool obscureText = false}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: const OutlineInputBorder(),
+      ),
+      obscureText: obscureText,
+      validator: (value) => value == null || value.isEmpty ? 'Lütfen $label girin' : null,
     );
   }
 }

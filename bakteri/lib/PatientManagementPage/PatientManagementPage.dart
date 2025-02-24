@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 import '../AddPatientPage/AddPatientPage.dart';
 import '../DatabaseOperations/DatabaseHelper.dart';
@@ -7,6 +8,7 @@ import 'dart:io';
 import '../EditProfilePage/EditProfilePage.dart';
 import '../Homepage/HomeScreen.dart';
 import '../ProfilePage/ProfilePage.dart';
+import '../provider.dart';
 
 class PatientManagementPage extends StatefulWidget {
   final String? name;
@@ -21,28 +23,38 @@ class PatientManagementPage extends StatefulWidget {
 
 class _PatientManagementPageState extends State<PatientManagementPage> {
   late Future<List<Map<String, dynamic>>> _patients;
-   // To track the selected tab
   int _currentIndex = 0;
+  int _userId = 0;
 
   late final List<Widget> _pages;
-
 
   @override
   void initState() {
     super.initState();
-
-    _patients = DatabaseHelper.instance.getAllPatients();
-    _pages = [
-      HomeScreen(),
-      const AddPatientPage(),
-      const PatientManagementPage(),
-      const DoctorProfilePage(),
-      const EditProfilePage(),
-    ];
+    _fetchUserId();
   }
 
-  // Handle Bottom Navigation Bar tab selection
+  Future<void> _fetchUserId() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final email = userProvider.email ?? '';
+    final password = userProvider.password ?? '';
 
+    if (email.isNotEmpty && password.isNotEmpty) {
+      final userId = await DatabaseHelper.instance.getUserIdByEmailPassword(email, password);
+
+      if (userId != null) {
+        setState(() {
+          _userId = userId;
+          _patients = DatabaseHelper.instance.getPatientsByUserId(_userId);
+        });
+        print("User ID: $_userId");
+      } else {
+        print('User not found.');
+      }
+    } else {
+      print('Email or Password is missing.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,120 +76,89 @@ class _PatientManagementPageState extends State<PatientManagementPage> {
 
           final patients = snapshot.data!;
 
-          return Padding(
-            padding: const EdgeInsets.all(0.0),
-            child: DataTable(
-              headingRowColor: MaterialStateColor.resolveWith((states) => Colors.teal),
-              columns: const [
-                DataColumn(
-                  label: Center(child: Text('Hasta Adı', style: TextStyle(color: Colors.white))),
-                ),
-                DataColumn(
-                  label: Center(child: Text('Hastalık', style: TextStyle(color: Colors.white))),
-                ),
-                DataColumn(
-                  label: Center(child: Text('Detaylar', style: TextStyle(color: Colors.white))),
-                ),
-              ],
-              rows: List.generate(
-                patients.length,
-                    (index) => DataRow(
-                  cells: [
-                    DataCell(
-                      Center(
-                        child: Text(
-                          patients[index]['name'],
-                          style: const TextStyle(color: Colors.teal),
-                        ),
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: patients.map((patient) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
                       ),
-                    ),
-                    DataCell(
-                      Center(
-                        child: Text(
-                          patients[index]['disease'],
-                          style: const TextStyle(color: Colors.teal),
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Center(
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_forward_ios, color: Colors.teal),
+                      child: ListTile(
+                        title: Text(patient['name'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        subtitle: Text('Hastalık: ${patient['disease']}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.arrow_forward_ios),
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => PatientDetailPage(patient: patients[index]),
+                                builder: (context) => PatientDetailPage(patient: patient)
                               ),
                             );
                           },
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  );
+                }).toList(),
               ),
             ),
           );
         },
       ),
-      // Bottom Navigation Bar
-        bottomNavigationBar: BottomNavigationBar(
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Anasayfa',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add_box_rounded),
-              label: 'Hasta Ekle',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.report, color: Colors.blueAccent), // Hasta Yönetimi her zaman mavi
-              label: 'Hasta Yönetimi',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.supervised_user_circle),
-              label: 'Profil',
-            ),
-          ],
-          currentIndex: 2,
-          selectedItemColor: Colors.blueAccent,
-          unselectedItemColor: Colors.blueGrey,
-          onTap: (index) {
-            if (index == 0) {
-              setState(() {
-                _currentIndex = index;
-              });
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen(name: widget.name,surname: widget.surname,specialization: widget.specialization)),
-              );
-            }
-            if (index == 1) {
-              setState(() {
-                _currentIndex = index;
-              });
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AddPatientPage(name: widget.name,surname:widget.surname,specialization: widget.specialization,)),
-              );
-            }
-            if (index == 3) {
-              setState(() {
-                _currentIndex = index;
-              });
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => DoctorProfilePage()),
-              );
-            }
-          },
-        )
-
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Anasayfa',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box_rounded),
+            label: 'Hasta Ekle',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.report, color: Colors.blueAccent),
+            label: 'Hasta Yönetimi',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.supervised_user_circle),
+            label: 'Profil',
+          ),
+        ],
+        currentIndex: 2,
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.blueGrey,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen(name: widget.name, surname: widget.surname, specialization: widget.specialization)),
+            );
+          }
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AddPatientPage()),
+            );
+          }
+          if (index == 3) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const DoctorProfilePage()),
+            );
+          }
+        },
+      ),
     );
   }
 }
+
+
 
 class PatientDetailPage extends StatelessWidget {
   final Map<String, dynamic> patient;
@@ -304,3 +285,4 @@ class PatientDetailPage extends StatelessWidget {
     );
   }
 }
+
