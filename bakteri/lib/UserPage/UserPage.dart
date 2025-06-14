@@ -1,5 +1,7 @@
 import 'package:bakteri/AddPatientPage/AddPatientPage.dart';
+import 'package:bakteri/Chatbot/chatbotpage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../DatabaseOperations/DatabaseHelper.dart';
 import '../Homepage/HomeScreen.dart';
@@ -51,6 +53,20 @@ class _UserPageState extends State<UserPage> {
     });
   }
 
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Lütfen bir e-posta girin';
+    }
+
+    // Geçerli bir e-posta formatı kontrolü
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+    if (!emailRegex.hasMatch(value)) {
+      return 'Geçerli bir e-posta adresi girin';
+    }
+    return null; // Geçerliyse hata mesajı dönmez
+  }
+
   Future<void> loginUser(String email, String password) async {
     final user = await DatabaseHelper.instance.getUserByEmailAndPassword(email, password);
 
@@ -68,13 +84,21 @@ class _UserPageState extends State<UserPage> {
         context,
         MaterialPageRoute(
           builder: (context) => HomeScreen(
+            id: user["id"],
             name: user['name'],
             surname: user['surname'],
             specialization: user['specialization'],
+
+
           ),
         ),
+
       );
-    } else {
+
+    }
+
+
+    else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Hatalı e-posta veya şifre')),
       );
@@ -111,12 +135,37 @@ class _UserPageState extends State<UserPage> {
                     _buildTextField(_specializationController, 'Uzmanlık Alanı', Icons.medical_services),
                     const SizedBox(height: 20),
                   ],
-                  _buildTextField(_emailController, 'E-posta', Icons.email),
+        TextFormField(
+        controller: _emailController,
+        decoration: InputDecoration(
+        labelText: 'E-Posta',
+        prefixIcon: Icon(Icons.email),
+        border: OutlineInputBorder(),
+      ),
+      keyboardType: TextInputType.emailAddress,
+      validator: _validateEmail,
+    ),
                   const SizedBox(height: 20),
                   _buildTextField(_passwordController, 'Şifre', Icons.lock, obscureText: true),
                   const SizedBox(height: 20),
                   if (!isLogin)
-                    _buildTextField(_phoneController, 'Telefon Numarası', Icons.phone),
+                    TextFormField(
+                      controller: _phoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Hasta Telefonu',
+                        prefixIcon: Icon(Icons.phone), // Telefon ikonu eklendi
+                        border: OutlineInputBorder(), // Kenarlık ekleyerek daha belirgin hale getirdik
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Lütfen hasta telefonu girin';
+                        }
+                        return null;
+                      },
+                    ),
+
                   const SizedBox(height: 40),
                   ElevatedButton(
                     onPressed: () {

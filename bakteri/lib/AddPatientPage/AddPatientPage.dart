@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:bakteri/Chatbot/chatbotpage.dart';
 import 'package:bakteri/PatientManagementPage/PatientManagementPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,13 +10,18 @@ import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
+import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
+
+
 
 import '../Homepage/HomeScreen.dart';
 import '../ProfilePage/ProfilePage.dart';
 import '../provider.dart';
 
 class AddPatientPage extends StatefulWidget {
-  const AddPatientPage({super.key});
+  final int? id;
+  const AddPatientPage({super.key,this.id});
 
   @override
   _AddPatientPageState createState() => _AddPatientPageState();
@@ -25,6 +32,16 @@ class _AddPatientPageState extends State<AddPatientPage> {
   XFile? _selectedImage;
   bool _isPredicted = false;
   int _currentIndex = 0;
+  String _bacteriaType = '';
+  String _confidence = '';
+
+  String _predictionResult = "";
+
+  @override
+  void initState() {
+    super.initState();
+
+  }
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
@@ -56,12 +73,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
       return;
     }
 
-    if (!_isPredicted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fotoğraf tahmin edilmeden kaydedemezsiniz!')),
-      );
-      return;
-    }
+
+
 
     if (_formKey.currentState!.validate()) {
       final db = await _initializeDatabase();
@@ -102,6 +115,8 @@ class _AddPatientPageState extends State<AddPatientPage> {
         return;
       }
 
+      if(_isPredicted == true){
+
       // Hastayı veritabanına kaydet
       await db.insert(
         'patients',
@@ -116,16 +131,41 @@ class _AddPatientPageState extends State<AddPatientPage> {
           'address': _addressController.text,
           'gender': _gender,
           'image_path': _selectedImage!.path,
+          'accuracy': _confidence,
+          "bacteria_type":_bacteriaType
         },
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Hasta başarıyla kaydedildi!')),
       );
+      Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PatientManagementPage()));
+      }
+
+      else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tahmin işlemini lütfen tamamlayınız!')),
+        );
+      }
+
     }
   }
 
+  Future<void> _uploadImage() async{
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
 
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = XFile(pickedFile!.path);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Resim seçilmedi!')),
+      );
+    }
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -141,20 +181,43 @@ class _AddPatientPageState extends State<AddPatientPage> {
     }
   }
 
-  void _predictImage() {
-    if (_selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bakteri tanımlama işlemi için bir fotoğraf çekmelisiniz')),
-      );
-      return;
+  /// **📌 Görüntüyü Modele Gönderme**j
+
+
+  Future<void> sendImageRequest() async {
+    final Uri url = Uri.parse('http://192.168.1.102:5000/predict');
+
+    // Resim dosyasını gönderin
+    var request = http.MultipartRequest('POST', url)
+      ..files.add(await http.MultipartFile.fromPath('file', _selectedImage!.path));  // "image" yerine "file"
+
+    try {
+      // HTTP isteğini gönder
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        // Yanıtı işleyin
+        final responseData = await response.stream.bytesToString();
+        final Map<String, dynamic> jsonResponse = json.decode(responseData);
+
+        setState(() {
+          // Gelen verileri UI'ye aktarın
+          _bacteriaType = jsonResponse['predicted_class'] ?? 'Unknown';  // API'de "predicted_class" kullanılıyor
+          _confidence = ((jsonResponse['max_probability'] ?? 0.0) * 100).toStringAsFixed(2) + '%';
+
+        });
+
+        print(_bacteriaType);
+        print(_confidence);
+      } else {
+        print('Request failed with status: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error: $error');
     }
-    setState(() {
-      _isPredicted = true;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fotoğraf tahmin edildi!')),
-    );
+    _isPredicted = true;
   }
+
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -175,6 +238,27 @@ class _AddPatientPageState extends State<AddPatientPage> {
 
   @override
   Widget build(BuildContext context) {
+    if(_bacteriaType == "0"){
+      _bacteriaType = "Acineto";
+    }
+    if(_bacteriaType == "1"){
+      _bacteriaType = "Ecoli";
+    }
+    if(_bacteriaType == "2"){
+      _bacteriaType = "Enterobacter";
+    }
+    if(_bacteriaType == "3"){
+      _bacteriaType = "K.Pneumoniae";
+    }
+    if(_bacteriaType == "4"){
+      _bacteriaType = "Proteus";
+    }
+    if(_bacteriaType == "5"){
+      _bacteriaType = "Ps.aeruginosa";
+    }
+    if(_bacteriaType == "6"){
+      _bacteriaType = "Staph.aureus";
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Hasta Ekleme Paneli'),
@@ -188,7 +272,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
           child: ListView(
 
 
-// Diğer kodlar...
+// Diğer kodlar...anaconda
 
             children: [
               TextFormField(
@@ -197,11 +281,23 @@ class _AddPatientPageState extends State<AddPatientPage> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]')), // Sadece a-z ve A-Z harflerine izin ver
                 ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen adı soyadı girin';
+                  }
+                  return null;
+                },
               ),
               TextFormField(
                 controller: _dobController,
                 decoration: const InputDecoration(labelText: 'Doğum Tarihi'),
                 onTap: () => _selectDate(context),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen doğum tarihi girin';
+                  }
+                  return null;
+                },
               ),
 
               TextFormField(
@@ -209,6 +305,12 @@ class _AddPatientPageState extends State<AddPatientPage> {
                 decoration: const InputDecoration(labelText: 'Hasta Telefonu'),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen hasta telefonu girin';
+                  }
+                  return null;
+                },
               ),
               TextFormField(
                 controller: _diseaseController,
@@ -216,6 +318,12 @@ class _AddPatientPageState extends State<AddPatientPage> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]')), // Sadece a-z ve A-Z harflerine izin ver
                 ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen hastalık bilgisi girin';
+                  }
+                  return null;
+                },
               ),
               TextFormField(
                 controller: _emergencyContactController,
@@ -223,14 +331,32 @@ class _AddPatientPageState extends State<AddPatientPage> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]')), // Sadece a-z ve A-Z harflerine izin ver
                 ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen acil durum kişisi girin';
+                  }
+                  return null;
+                },
               ),
               TextFormField(
                 controller: _emergencyPhoneController,
                 decoration: const InputDecoration(labelText: 'Acil Durum Telefonu'),
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen acil durum telefonu girin';
+                  }
+                  return null;
+                },
               ),
-              TextFormField(controller: _addressController, decoration: const InputDecoration(labelText: 'Adres')),
+              TextFormField(controller: _addressController, decoration: const InputDecoration(labelText: 'Adres'),validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Lütfen hasta adresini girin';
+                }
+                return null;
+              },),
+
               Row(
                 children: [
                   const Text("Cinsiyet: "),
@@ -238,10 +364,50 @@ class _AddPatientPageState extends State<AddPatientPage> {
                   const Text("Erkek"),
                   Radio(value: "Kadın", groupValue: _gender, onChanged: (value) => setState(() => _gender = value!)),
                   const Text("Kadın"),
+                  Text(_predictionResult)
                 ],
               ),
+
               if (_selectedImage != null) Image.file(File(_selectedImage!.path), height: 150),
+              Text(
+                "Bakteri Türü: $_bacteriaType",
+                style: TextStyle(
+                  fontSize: 18, // Yazı boyutu
+                  fontWeight: FontWeight.bold, // Kalın yazı
+                  color: Colors.green, // Yazı rengi
+                  letterSpacing: 1.2, // Harf aralığı
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26, // Hafif gölge
+                      offset: Offset(1, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center, // Metni ortala
+              ),
+
+              Text(
+                "Tahmin Doğruluk Değeri: ${_confidence}",
+                style: TextStyle(
+                  fontSize: 18, // Yazı boyutu
+                  fontWeight: FontWeight.bold, // Kalın yazı
+                  color: Colors.red, // Mavi tonlarında renk
+                  letterSpacing: 1.2, // Harf aralığı
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26, // Hafif gölge efekti
+                      offset: Offset(1, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center, // Ortalanmış metin
+              ),
+
               ElevatedButton.icon(onPressed: _pickImage, icon: const Icon(Icons.camera_alt), label: const Text('Fotoğraf Çek')),
+              ElevatedButton.icon(onPressed: _uploadImage, icon: const Icon(Icons.upload), label: const Text('Fotoğraf Yükle')),
+              ElevatedButton.icon(onPressed: sendImageRequest, icon: const Icon(Icons.save), label: const Text('Tahmin Yap')),
               ElevatedButton.icon(onPressed: _savePatient, icon: const Icon(Icons.save), label: const Text('Kaydet')),
             ],
 
@@ -265,6 +431,10 @@ class _AddPatientPageState extends State<AddPatientPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.supervised_user_circle),
             label: 'Profil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chatbot',
           ),
         ],
         currentIndex: 1,
@@ -298,6 +468,15 @@ class _AddPatientPageState extends State<AddPatientPage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => DoctorProfilePage()),
+            );
+          }
+          if (index == 4) {
+            setState(() {
+              _currentIndex = index;
+            });
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChatbotPage(userId: widget.id ?? 0)),
             );
           }
         },

@@ -1,4 +1,5 @@
 import 'package:bakteri/AddPatientPage/AddPatientPage.dart';
+import 'package:bakteri/Chatbot/chatbotpage.dart';
 import 'package:bakteri/Homepage/HomeScreen.dart';
 import 'package:bakteri/PatientManagementPage/PatientManagementPage.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,8 @@ import 'package:provider/provider.dart';
 import '../provider.dart';
 
 class DoctorProfilePage extends StatefulWidget {
-  const DoctorProfilePage({super.key});
+  const DoctorProfilePage({super.key,this.id});
+  final int? id;
 
   @override
   _DoctorProfilePageState createState() => _DoctorProfilePageState();
@@ -138,6 +140,10 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
             icon: Icon(Icons.supervised_user_circle),
             label: 'Profil',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chatbot',
+          ),
         ],
         currentIndex: 3,
         selectedItemColor: Colors.blueAccent,
@@ -159,6 +165,13 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const PatientManagementPage()),
+            );
+          }
+          if (index == 4) {
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChatbotPage(userId: widget.id ?? 0)),
             );
           }
         },

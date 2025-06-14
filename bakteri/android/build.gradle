@@ -1,7 +1,10 @@
+
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+
     }
 }
 
@@ -13,6 +16,7 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Temizlik işlemi için 'clean' task'ı
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

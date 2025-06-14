@@ -1,0 +1,2 @@
+C:/Users/atunc/AndroidStudioProjects/bakteri/android/app/.cxx/RelWithDebInfo/3i46i94r/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/atunc/AndroidStudioProjects/bakteri/android/app/.cxx/RelWithDebInfo/3i46i94r/arm64-v8a/CMakeFiles/rebuild_cache.dir

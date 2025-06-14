@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:bakteri/EditProfilePage/EditProfilePage.dart';
 import 'package:bakteri/ProfilePage/ProfilePage.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,13 +8,16 @@ import 'package:provider/provider.dart';
 import '../AddPatientPage/AddPatientPage.dart';
 import '../PatientManagementPage/PatientManagementPage.dart';
 import '../provider.dart';
+import '../Chatbot/chatbotpage.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? name;
   final String? surname;
   final String? specialization;
+  final int? id;
 
-  const HomeScreen({super.key, this.name, this.surname, this.specialization});
+  const HomeScreen({super.key, this.name, this.surname, this.specialization,this.id
+  });
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -31,8 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
       const AddPatientPage(),
       const PatientManagementPage(),
       const DoctorProfilePage(),
+      ChatbotPage(userId: widget.id ?? 0),
+
       const EditProfilePage(),
+       // Yeni Chatbot Sayfası
     ];
+
   }
 
   @override
@@ -71,6 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Expanded(
+              child: SingleChildScrollView(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -121,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          ],
+        )],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -158,6 +168,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.supervised_user_circle),
             label: 'Profil',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chatbot',
           ),
         ],
       ),

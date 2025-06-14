@@ -1,3 +1,4 @@
+import 'package:bakteri/Chatbot/chatbotpage.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -14,8 +15,10 @@ class PatientManagementPage extends StatefulWidget {
   final String? name;
   final String? surname;
   final String? specialization;
+  final int? id;
 
-  const PatientManagementPage({super.key, this.name, this.surname, this.specialization});
+  const PatientManagementPage({super.key, this.name, this.surname, this.specialization,this.id
+  });
 
   @override
   _PatientManagementPageState createState() => _PatientManagementPageState();
@@ -31,10 +34,22 @@ class _PatientManagementPageState extends State<PatientManagementPage> {
   @override
   void initState() {
     super.initState();
+    _pages = [
+      HomeScreen(name: widget.name, surname: widget.surname, specialization: widget.specialization),
+      const AddPatientPage(),
+      const PatientManagementPage(),
+      const DoctorProfilePage(),
+      ChatbotPage(userId: widget.id ?? 0),
+
+      const EditProfilePage(),
+      // Yeni Chatbot Sayfası
+    ];
     _fetchUserId();
+
   }
 
   Future<void> _fetchUserId() async {
+
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final email = userProvider.email ?? '';
     final password = userProvider.password ?? '';
@@ -129,6 +144,10 @@ class _PatientManagementPageState extends State<PatientManagementPage> {
             icon: Icon(Icons.supervised_user_circle),
             label: 'Profil',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chatbot',
+          ),
         ],
         currentIndex: 2,
         selectedItemColor: Colors.blueAccent,
@@ -150,6 +169,15 @@ class _PatientManagementPageState extends State<PatientManagementPage> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const DoctorProfilePage()),
+            );
+          }
+          if (index == 4) {
+            setState(() {
+              _currentIndex = index;
+            });
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChatbotPage(userId: widget.id ?? 0)),
             );
           }
         },
@@ -201,6 +229,7 @@ class PatientDetailPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   children: [
+
                     _buildTableRow('Adı:', patient['name']),
                     _buildTableRow('Doğum Tarihi:', patient['dob']),
                     _buildTableRow('Hastalık:', patient['disease']),
@@ -209,6 +238,8 @@ class PatientDetailPage extends StatelessWidget {
                     _buildTableRow('Adres:', patient['address']),
                     _buildTableRow('Cinsiyet:', patient['gender']),
                     _buildImageRow('BAKTERİ FOTOĞRAFI:', patient['image_path']),
+                    _buildTableRow('Tahmin Sonucu:', patient['accuracy']),
+                    _buildTableRow( 'Bakteri Türü:', patient['bacteria_type']),
                   ],
                 ),
               ),

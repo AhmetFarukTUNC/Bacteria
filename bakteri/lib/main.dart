@@ -1,8 +1,9 @@
+import 'package:bakteri/SplashScreen/SplashScreen.dart';
 import 'package:bakteri/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'SplashScreen/SplashScreen.dart';
+
 
 void main() {
   runApp(
